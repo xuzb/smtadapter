@@ -1,2 +1,8 @@
-exlibs/z3/source
-exlibs/z3/libz3.a
+CMakeFiles
+CMakeCache.txt
+Makefile
+TAGS
+cmake_install.cmake
+*.a
+z3
+z3-prefix
