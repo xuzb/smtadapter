@@ -13,7 +13,7 @@ set(SOLVER_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(SMT_LIBS_DIR ${SOLVER_SOURCE_DIR}/lib)
 
 # Z3 libraries
-set(Z3_LIBS ${SMT_LIBS_DIR}/z3/libz3.a pthread openmp rt)
+set(Z3_LIBS ${SMT_LIBS_DIR}/z3/libz3.a pthread rt)
 
 set(SMT_LIBS ${Z3_LIBS})
 
@@ -21,7 +21,7 @@ add_library(solver Z3Adapter.cpp)
 
 add_dependencies(solver z3)
 
-set(SOLVER_LIBS solver ${SMT_LIBS})
+set(SOLVER_LIBS solver ${SMT_LIBS} PARENT_SCOPE)
 
 include_directories(
   ${SMT_LIBS_DIR}/z3/src/api
