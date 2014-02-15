@@ -2,7 +2,7 @@ if( CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR )
   project(solver)
   cmake_minimum_required(VERSION 2.8)
   set(CMAKE_VERBOSE_MAKEFILE on)
-  
+  set(IS_TOP_LEVEL TRUE)
 endif()
 
 # As we don't depend on llvm, we need to use rtti and exceptions.
@@ -21,7 +21,11 @@ add_library(solver Z3Adapter.cpp)
 
 add_dependencies(solver z3)
 
-set(SOLVER_LIBS solver ${SMT_LIBS} PARENT_SCOPE)
+if(IS_TOP_LEVEL)
+  set(SOLVER_LIBS solver ${SMT_LIBS})
+else()
+  set(SOLVER_LIBS solver ${SMT_LIBS} PARENT_SCOPE)
+endif()
 
 include_directories(
   ${SMT_LIBS_DIR}/z3/src/api
@@ -29,3 +33,4 @@ include_directories(
   ${SOLVER_SOURCE_DIR}/include)
 
 add_subdirectory(${SMT_LIBS_DIR})
+add_subdirectory(unittests)
