@@ -3,6 +3,11 @@ if( CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR )
   cmake_minimum_required(VERSION 2.8)
   set(CMAKE_VERBOSE_MAKEFILE on)
   set(IS_TOP_LEVEL TRUE)
+
+  # target etags/tags
+  if (UNIX)
+    ADD_CUSTOM_TARGET(etags etags --members --declarations  `find . -name '*.cc' -or -name '*.hh' -or -name '*.cpp' -or -name '*.h' -or -name '*.c'`)
+  endif (UNIX)
 endif()
 
 # As we don't depend on llvm, we need to use rtti and exceptions.
