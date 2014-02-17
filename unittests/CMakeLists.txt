@@ -9,5 +9,10 @@ include_directories(${LLVM_INCLUDE_DIRS})
 link_directories(${LLVM_LIBRARY_DIRS})
 add_definitions(${LLVM_CFLAGS})
 
+find_library(TINFO_LIBRARY tinfo)
+if (TINFO_LIBRARY)
+  set(LLVM_MODULE_LIBS ${LLVM_MODULE_LIBS} tinfo)
+endif()
+
 add_executable(z3test z3test.cpp)
-target_link_libraries(z3test ${SOLVER_LIBS} ${LLVM_MODULE_LIBS} ${LLVM_LDFLAGS} ${SYSTEM_SOLVER_LIBS} tinfo)
+target_link_libraries(z3test ${SOLVER_LIBS} ${LLVM_MODULE_LIBS} ${LLVM_LDFLAGS} ${SYSTEM_SOLVER_LIBS})
