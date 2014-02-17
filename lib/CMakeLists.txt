@@ -9,5 +9,5 @@ ExternalProject_Add(z3
    UPDATE_COMMAND ""
    CONFIGURE_COMMAND  python <SOURCE_DIR>/scripts/mk_make.py --staticlib
    BUILD_COMMAND  $(MAKE) -C <SOURCE_DIR>/build libz3.a
-   INSTALL_COMMAND ln -s <SOURCE_DIR>/build/libz3.a <SOURCE_DIR>/libz3.a
+   INSTALL_COMMAND ln -f -s <SOURCE_DIR>/build/libz3.a <SOURCE_DIR>/libz3.a
 )

@@ -2,38 +2,66 @@
 #define LASER_SYMBOL_H
 #include <string>
 #include <sstream>
-#include <stdint.h>
+#include <vector>
+#include <assert.h>
 
 namespace solver {
 
-enum BinOpcode {
-  BO_Mul, BO_Div, BO_Rem,
+enum ArithOpcode {
+  BO_Mul, BO_SDiv, BO_UDiv, BO_SRem, BO_URem,
   BO_Add, BO_Sub,
   BO_Shl, BO_Shr,
-  BO_LT, BO_GT, BO_LE, BO_GE,   // [C99 6.5.8] Relational operators.
-  BO_EQ, BO_NE,
   BO_And,                       // [C99 6.5.10] Bitwise AND operator.
   BO_Xor,                       // [C99 6.5.11] Bitwise XOR operator.
-  BO_Or,                        // [C99 6.5.12] Bitwise OR operator.
-  BO_LAnd,                      // [C99 6.5.13] Logical AND operator.
-  BO_LOr                        // [C99 6.5.14] Logical OR operator.
+  BO_Or                        // [C99 6.5.12] Bitwise OR operator.
+};
+
+enum LogicalOpcode {
+  BO_SLT, BO_ULT, BO_SGT, BO_UGT,
+  BO_SLE, BO_ULE, BO_SGE, BO_UGE,
+  BO_EQ, BO_NE,
+  BO_LAnd, BO_LOr // [C99 6.5.13/14] Logical AND/OR operator.
 };
 
 enum UnaryOpcode {
   UO_Minus,      // [C99 6.5.3.3] Unary arithmetic
-  UO_Not, UO_LNot,        // [C99 6.5.3.3] Unary arithmetic
+  UO_Not, UO_LNot        // [C99 6.5.3.3] Unary arithmetic
 };
 
 class SymExpr {
 public:
+    enum Kind {
+      BEGIN_SYMEXPR,
+      S_ElemSymExpr = BEGIN_SYMEXPR,
+
+      BEGIN_BINSYMEXPR,
+      S_ArithSymExpr = BEGIN_BINSYMEXPR,
+      S_LogicalSymExpr,
+      END_BINSYMEXPR = S_LogicalSymExpr,
+      
+      S_UnarySymExpr,
+      S_CastSymExpr,
+      S_ConstExpr,
+      
+      BEGIN_SYMBOL,
+      S_ScalarSymbol = BEGIN_SYMBOL,
+      S_ArraySymbol,
+      END_SYMBOL = S_ArraySymbol,
+      
+      END_SYMEXPR = S_ArraySymbol
+  };
+
+protected:
+  Kind kind;
+  
+public:
+  SymExpr(Kind k) : kind(k) {}
+  Kind getKind() const { return kind; }
   virtual unsigned getTypeBitSize() const = 0;
-  virtual bool isSigned() const = 0;
-  virtual bool isSymbol() const { return false; }
-  virtual bool isBinSymExpr() const { return false; }
-  virtual bool isUnarySymExpr() const { return false; }
-  virtual bool isCastSymExpr() const { return false; }
-  virtual bool isConstExpr() const { return false; }
-  virtual bool isElemSymExpr() const {return false;}
+
+  static unsigned getArrayIndexTypeBitSize() {
+    return 64;
+  }
 };
 
 class Symbol : public SymExpr {
@@ -41,10 +69,8 @@ protected:
   unsigned ID;
   
 public:
-  Symbol(unsigned id) : ID(id) {}
-  virtual bool isSigned() const {return false;} 
+  Symbol(Kind k, unsigned id) : SymExpr(k), ID(id) {}
   virtual unsigned getSymbolID() const {return ID;}
-  virtual bool isSymbol() const { return true; }
   std::string getSymName() const {
     std::string os;
     std::stringstream ss(os);
@@ -53,7 +79,43 @@ public:
   }
 
   static bool classof(const SymExpr *se) {
-    return se->isSymbol();
+    return se->getKind() >= BEGIN_SYMBOL && se->getKind() <= END_SYMBOL;
+  }
+};
+
+class ScalarSymbol : public Symbol {
+  unsigned typeBitSize;
+
+public:
+  ScalarSymbol(unsigned id, unsigned bitsize)
+    : Symbol(S_ScalarSymbol, id), typeBitSize(bitsize) {}
+
+  virtual unsigned getTypeBitSize() const { return typeBitSize; }
+
+  static bool classof(const SymExpr *se) {
+    return se->getKind() == S_ScalarSymbol;
+  }
+};
+
+class ArraySymbol : public Symbol {
+  unsigned elemTypeBitSize;
+  unsigned nDimension;
+  
+public:
+  ArraySymbol(unsigned id, unsigned elemTypeSize, unsigned nDim)
+    : Symbol(S_ArraySymbol, id), elemTypeBitSize(elemTypeSize), nDimension(nDim) {}
+
+  virtual unsigned getTypeBitSize() const {
+    assert(0 && "Should not call getTypeBitSize() on ArraySymbol.");
+  }
+
+  unsigned getNumberDimension() const { return nDimension; }
+  unsigned getElementTypeBitSize() const {
+    return elemTypeBitSize;
+  }
+  
+  static bool classof(const SymExpr *se) {
+    return se->getKind() == S_ArraySymbol;
   }
 };
 
@@ -64,15 +126,17 @@ protected:
 
 public:
   ElemSymExpr(SymExpr *base, SymExpr *index) :
-		baseExpr(base), indexExpr(index) {}
+		SymExpr(S_ElemSymExpr), baseExpr(base), indexExpr(index) {}
 
   const SymExpr *getBaseExpr() const { return baseExpr; }
   const SymExpr *getIndexExpr() const { return indexExpr; }
+
+  virtual unsigned getTypeBitSize() const {
+    assert(0 && "Should not call getTypeBitSize() on ElemSymExpr.");
+  }
   
-  virtual bool isSigned() const {return false;}
-  virtual bool isElemSymExpr() const {return true;}
   static bool classof(const SymExpr *se) {
-	return se->isElemSymExpr();
+    return se->getKind() == S_ElemSymExpr;
   }
 };
 
@@ -80,20 +144,48 @@ class BinSymExpr : public SymExpr {
 protected:
   const SymExpr *lhs;
   const SymExpr *rhs;
-  BinOpcode op;
 
 public:
-  BinSymExpr(const SymExpr *l, const SymExpr *r, BinOpcode o)
-    : lhs(l), rhs(r), op(o) {}
+  BinSymExpr(const SymExpr *l, const SymExpr *r, Kind k)
+    : SymExpr(k), lhs(l), rhs(r) {}
   
   const SymExpr *getLHS() const { return lhs; }
   const SymExpr *getRHS() const { return rhs; }
-  BinOpcode getOpcode() const { return op; }
-
-  virtual bool isBinSymExpr() const { return true; }
 
   static bool classof(const SymExpr *se) {
-    return se->isBinSymExpr();
+    return se->getKind() >= BEGIN_BINSYMEXPR && se->getKind() <= END_BINSYMEXPR;
+  }
+};
+
+class ArithSymExpr : public BinSymExpr {
+  ArithOpcode opcode;
+
+public:
+  ArithSymExpr(const SymExpr *l, const SymExpr *r, ArithOpcode op)
+    : BinSymExpr(l, r, S_ArithSymExpr), opcode(op) {}
+
+  ArithOpcode getOpcode() const { return opcode; }
+
+  virtual unsigned getTypeBitSize() const { return lhs->getTypeBitSize(); }
+
+  static bool classof(const SymExpr *se) {
+    return se->getKind() == S_ArithSymExpr;
+  }
+};
+
+class LogicalSymExpr : public BinSymExpr {
+  LogicalOpcode opcode;
+
+public:
+  LogicalSymExpr(const SymExpr *l, const SymExpr *r, LogicalOpcode op)
+    : BinSymExpr(l, r, S_LogicalSymExpr), opcode(op) {}
+
+  LogicalOpcode getOpcode() const { return opcode; }
+
+  virtual unsigned getTypeBitSize() const { return 1; }
+
+  static bool classof(const SymExpr *se) {
+    return se->getKind() == S_LogicalSymExpr;
   }
 };
 
@@ -104,15 +196,17 @@ protected:
 
 public:
   UnarySymExpr(const SymExpr *se, UnaryOpcode o)
-    : operand(se), uo(o) {}
+    : SymExpr(S_UnarySymExpr), operand(se), uo(o) {}
 
   const SymExpr *getOperand() const { return operand; }
   UnaryOpcode getUnaryOpcode() const { return uo; }
-  
-  virtual bool isUnarySymExpr() const { return true; }
 
+  virtual unsigned getTypeBitSize() const {
+    return operand->getTypeBitSize();
+  }
+  
   static bool classof(const SymExpr *se) {
-    return se->isUnarySymExpr();
+    return se->getKind() == S_UnarySymExpr;
   }
 };
 
@@ -120,40 +214,25 @@ class CastSymExpr : public SymExpr {
   const SymExpr *operand;
 
 public:
-  CastSymExpr(const SymExpr *op) : operand(op) {}
+  CastSymExpr(const SymExpr *op)
+  : SymExpr(S_CastSymExpr), operand(op) {}
   
   const SymExpr *getOperand() const { return operand; }
-  virtual bool isCastSymExpr() const { return true; }
 
   static bool classof(const SymExpr *se) {
-    return se->isCastSymExpr();
+    return se->getKind() == S_CastSymExpr;
   }
 };
 
 class ConstExpr : public SymExpr {
-protected:
-  int64_t val;
-  unsigned bitwidth;
-  bool bSigned;
-
 public:
-  ConstExpr(int64_t v, unsigned width, bool s)
-    : val(v), bitwidth(width), bSigned(s) {}
+  ConstExpr() : SymExpr(S_ConstExpr) {}
 
-  int64_t getValue() const { return val; }
+  virtual long long getValue() const = 0;
+  virtual bool isSigned() const = 0;
   
-  virtual bool isSigned() const {
-    return bSigned;
-  }
-  
-  virtual unsigned getTypeBitSize() const {
-    return bitwidth;
-  }
-
-  virtual bool isConstExpr() const { return true; }
-
   static bool classof(const SymExpr *se) {
-    return se->isConstExpr();
+    return se->getKind() == S_ConstExpr;
   }
 };
 

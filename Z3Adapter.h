@@ -29,7 +29,7 @@ private:
   unsigned timeout;
   z3::context c;
   z3::solver s;
-  std::map<std::string, z3::expr> decls;
+  std::map<unsigned, z3::expr> decls;
 
 };
 
