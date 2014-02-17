@@ -1,6 +1,6 @@
 #ifndef LASER_Z3_ADAPTER_H	// -*- C++ -*-
 #define LASER_Z3_ADAPTER_H
-#include "Solver.h"
+#include "SolverAdapter.h"
 #include "Symbol.h"
 #include "lib/z3/src/api/c++/z3++.h"
 #include <map>
@@ -12,6 +12,7 @@ namespace solver {
 
 class Z3Adapter : public SolverAdapter {
 public:
+  Z3Adapter();
   Z3Adapter(unsigned t);
 
   //override

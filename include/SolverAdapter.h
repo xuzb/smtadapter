@@ -26,10 +26,13 @@ struct SymConstraint {
 };
 
 class SolverAdapter {
-    // Check the current asserted fomulars.
+public:
+  // Check the current asserted fomulars.
   virtual SolverResult checkSat() = 0;
   virtual void assertSymConstraint(const SymConstraint &sc) = 0;
 };
+
+SolverAdapter *CreateZ3SolverAdapter();
 
 }
 

@@ -4,8 +4,13 @@
 
 using namespace solver;
 
-Z3Adapter::Z3Adapter(unsigned t) : s(c) {
-  timeout = t;
+Z3Adapter::Z3Adapter() : timeout(5000), c(), s(c) {
+  z3::params p(c);
+  p.set(":timeout", timeout);
+  s.set(p);
+}
+
+Z3Adapter::Z3Adapter(unsigned t) : timeout(t), c(), s(c) {
   z3::params p(c);
   p.set(":timeout", timeout);
   s.set(p);

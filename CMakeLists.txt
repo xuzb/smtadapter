@@ -22,7 +22,7 @@ set(Z3_LIBS ${SMT_LIBS_DIR}/z3/libz3.a pthread gomp rt)
 
 set(SMT_LIBS ${Z3_LIBS})
 
-add_library(solver Z3Adapter.cpp)
+add_library(solver SolverAdapter.cpp Z3Adapter.cpp)
 
 add_dependencies(solver z3)
 

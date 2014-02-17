@@ -253,7 +253,7 @@ void testZ3IntCastSymExpr() {
 void testZ3Adapter() {
   llvm::errs() << "Test Z3Adapter. . .\n";
   unsigned timeout = 1000; // 1 second
-  Z3Adapter adapter(timeout);
+  SolverAdapter *adapter = CreateZ3SolverAdapter();
 
   // x1 * 5 < x2 + 6
   llvm::errs() << "// x1 * 5 < x2 + 6\n";
@@ -265,9 +265,9 @@ void testZ3Adapter() {
   Z3ArithSymExpr bin1(&x1, &ce1, BO_Mul), bin2(&x2, &ce2, BO_Add);
   Z3LogicalSymExpr bin3(&bin1, &bin2, BO_ULT);
   SymConstraint sc1(&bin3, true);
-  adapter.assertSymConstraint(sc1);
-  if(adapter.checkSat() == SAT_Satisfiable) {
-    adapter.printModel();
+  adapter->assertSymConstraint(sc1);
+  if(adapter->checkSat() == SAT_Satisfiable) {
+    //    adapter.printModel();
   }
 
   // x3 = 0xFFFFFFFF, extract(x3, 16) = x4
@@ -294,12 +294,12 @@ void testZ3Adapter() {
   SymConstraint sc3(&bin5, true);
   SymConstraint sc4(&bin6, true);
   SymConstraint sc5(&bin7, true);
-  adapter.assertSymConstraint(sc2);
-  adapter.assertSymConstraint(sc3);
-  adapter.assertSymConstraint(sc4);
-  adapter.assertSymConstraint(sc5);
-  if(adapter.checkSat() == SAT_Satisfiable) {
-    adapter.printModel();
+  adapter->assertSymConstraint(sc2);
+  adapter->assertSymConstraint(sc3);
+  adapter->assertSymConstraint(sc4);
+  adapter->assertSymConstraint(sc5);
+  if(adapter->checkSat() == SAT_Satisfiable) {
+    //    adapter.printModel();
   }
 
   // !(id[index1][index2] > x3)
@@ -311,9 +311,9 @@ void testZ3Adapter() {
   Z3ElemSymExpr ese2(&ese1, &index2, true);
   Z3LogicalSymExpr bin8(&ese2, &x3, BO_UGE);
   SymConstraint sc6(&bin8, false);
-  adapter.assertSymConstraint(sc6);
-  if(adapter.checkSat() == SAT_Satisfiable) {
-    adapter.printModel();
+  adapter->assertSymConstraint(sc6);
+  if(adapter->checkSat() == SAT_Satisfiable) {
+    //adapter->printModel();
   }
 
 }
