@@ -169,8 +169,14 @@ z3::expr Z3Adapter::genZ3Expr(const SymExpr *cond) {
       case UO_LNot:
         return !e;
     }
-  } else if(CastSymExpr::classof(cond)) {
-    const CastSymExpr *ce = static_cast<const CastSymExpr *>(cond);
+  } else if (TruncSymExpr::classof(cond)) {
+    const TruncSymExpr *ce = static_cast<const TruncSymExpr *>(cond);
+    const SymExpr *operand = ce->getOperand();
+    z3::expr e = genZ3Expr(operand);
+    
+    return z3::expr(c, Z3_mk_extract(c, ce->getTypeBitSize() - 1, 0, e));
+  } else if (ExtendSymExpr::classof(cond)) {
+    const ExtendSymExpr *ce = static_cast<const ExtendSymExpr *>(cond);
     const SymExpr *operand = ce->getOperand();
     z3::expr e = genZ3Expr(operand);
     int newBitSize = ce->getTypeBitSize();
@@ -184,18 +190,13 @@ z3::expr Z3Adapter::genZ3Expr(const SymExpr *cond) {
     }
 
     int oldBitSize = operand->getTypeBitSize();
-    int sizeDiff = oldBitSize - newBitSize;
+    int sizeDiff = newBitSize - oldBitSize;
+    assert(sizeDiff > 0 && "The targe type size should be greater than old type size.");
 
-    if(sizeDiff > 0) {
-      // Extract
-      return z3::expr(c, Z3_mk_extract(c, newBitSize - 1, 0, e));
+    if(ce->isSignedExt()) {
+      return z3::expr(c, Z3_mk_sign_ext(c, sizeDiff, e));
     } else {
-      if(1) {
-        // FIXME: Sign-extend for now
-        return z3::expr(c, Z3_mk_sign_ext(c, -1 * sizeDiff, e));
-      } else {
-        return z3::expr(c, Z3_mk_zero_ext(c, -1 * sizeDiff, e));
-      }
+      return z3::expr(c, Z3_mk_zero_ext(c, sizeDiff, e));
     }
   } else if(ConstExpr::classof(cond)) {
     const ConstExpr *ce = static_cast<const ConstExpr *>(cond);

@@ -38,9 +38,13 @@ public:
       S_ArithSymExpr = BEGIN_BINSYMEXPR,
       S_LogicalSymExpr,
       END_BINSYMEXPR = S_LogicalSymExpr,
+
+      BEGIN_CASTSYMEXPR,
+      S_TruncSymExpr = BEGIN_CASTSYMEXPR,
+      S_ExtendSymExpr,
+      END_CASTSYMEXPR = S_ExtendSymExpr,
       
       S_UnarySymExpr,
-      S_CastSymExpr,
       S_ConstExpr,
       
       BEGIN_SYMBOL,
@@ -214,13 +218,36 @@ class CastSymExpr : public SymExpr {
   const SymExpr *operand;
 
 public:
-  CastSymExpr(const SymExpr *op)
-  : SymExpr(S_CastSymExpr), operand(op) {}
+  CastSymExpr(Kind k, const SymExpr *op)
+  : SymExpr(k), operand(op) {}
   
   const SymExpr *getOperand() const { return operand; }
 
   static bool classof(const SymExpr *se) {
-    return se->getKind() == S_CastSymExpr;
+    return se->getKind() >= BEGIN_CASTSYMEXPR && se->getKind() <= END_CASTSYMEXPR;
+  }
+};
+
+class TruncSymExpr : public CastSymExpr {
+public:
+  TruncSymExpr(const SymExpr *op) : CastSymExpr(S_TruncSymExpr, op) {}
+
+  static bool classof(const SymExpr *se) {
+    return se->getKind() == S_TruncSymExpr;
+  }
+};
+
+class ExtendSymExpr : public CastSymExpr {
+  bool bSignedExt;
+
+public:
+  ExtendSymExpr(const SymExpr *op, bool sext)
+    : CastSymExpr(S_ExtendSymExpr, op), bSignedExt(sext) {}
+
+  bool isSignedExt() const { return bSignedExt; }
+  
+  static bool classof(const SymExpr *se) {
+    return se->getKind() == S_ExtendSymExpr;
   }
 };
 

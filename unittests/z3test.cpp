@@ -50,17 +50,25 @@ public:
 
 };
 
-class Z3IntCastSymExpr : public CastSymExpr {
+class Z3TruncSymExpr : public TruncSymExpr {
+  unsigned bitsize;
+
 public:
-  Z3IntCastSymExpr(int nbz, bool ns, const SymExpr *op) : oldBitSize(op->getTypeBitSize()), 
-	newBitSize(nbz), CastSymExpr(op) {}
+  Z3TruncSymExpr(int bs, const SymExpr *op) : TruncSymExpr(op), bitsize(bs) {}
+
+  virtual unsigned getTypeBitSize() const { return bitsize; }
+};
+
+class Z3ExtendSymExpr : public ExtendSymExpr {
+public:
+  Z3ExtendSymExpr(int nbz, bool sext, const SymExpr *op)
+    : ExtendSymExpr(op, sext), newBitSize(nbz) {}
 
   virtual unsigned getTypeBitSize() const {return newBitSize;}
-  int getSizeDiff() const {return oldBitSize - newBitSize;}
-  int getOldBitSize() const {return oldBitSize;}
+  int getOldBitSize() const {return getOperand()->getTypeBitSize();}
 
 private:
-  unsigned oldBitSize, newBitSize;
+  unsigned newBitSize;
 	
 };
 
@@ -213,7 +221,7 @@ void testZ3IntCastSymExpr() {
   Z3Adapter adapter(timeout);
 
   Z3Symbol x1(1, 32, false);
-  Z3IntCastSymExpr cse1(16, true, &x1);
+  Z3TruncSymExpr cse1(16, &x1);
   z3::expr ex1 = adapter.genZ3Expr(&cse1);
   std::ostringstream oss;
   oss << ex1 << "\n";
@@ -223,7 +231,7 @@ void testZ3IntCastSymExpr() {
   llvm::APInt v1(64, 1024);
   llvm::APSInt v2(v1, false);
   Z3ConstExpr ce1(&v2);
-  Z3IntCastSymExpr cse2(8, false, &ce1);
+  Z3TruncSymExpr cse2(8, &ce1);
   z3::expr ex2 = adapter.genZ3Expr(&cse2);
   oss.str("");
   oss << ex2 << "\n";
@@ -233,7 +241,7 @@ void testZ3IntCastSymExpr() {
   llvm::APInt v3(32, -1024, true);
   llvm::APSInt v4(v3, true);
   Z3ConstExpr ce2(&v4);
-  Z3IntCastSymExpr cse3(64, true, &ce2);
+  Z3ExtendSymExpr cse3(64, true, &ce2);
   z3::expr ex3 = adapter.genZ3Expr(&cse3);
   oss.str("");
   oss << ex3 << "\n";
@@ -243,7 +251,7 @@ void testZ3IntCastSymExpr() {
   llvm::APInt v5(32, 1024, false);
   llvm::APSInt v6(v5, false);
   Z3ConstExpr ce3(&v6);
-  Z3IntCastSymExpr cse4(64, false, &ce3);
+  Z3ExtendSymExpr cse4(64, false, &ce3);
   z3::expr ex4 = adapter.genZ3Expr(&cse4);
   oss.str("");
   oss << ex4 << "\n";
@@ -285,9 +293,9 @@ void testZ3Adapter() {
   llvm::APSInt v6(v5, true);
   Z3ConstExpr ce3(&v6);
   Z3LogicalSymExpr bin4(&x3, &ce3, BO_EQ);
-  Z3IntCastSymExpr cse1(16, false, &x3);
-  Z3IntCastSymExpr cse2(48, false, &x3);
-  Z3IntCastSymExpr cse3(32, true, &x4);
+  Z3TruncSymExpr cse1(16, &x3);
+  Z3ExtendSymExpr cse2(48, false, &x3);
+  Z3ExtendSymExpr cse3(32, true, &x4);
   Z3LogicalSymExpr bin5(&cse1, &x4, BO_EQ);
   Z3LogicalSymExpr bin6(&cse2, &x5, BO_EQ);
   Z3LogicalSymExpr bin7(&cse3, &x6, BO_EQ);
