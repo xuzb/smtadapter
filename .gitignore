@@ -7,3 +7,6 @@ cmake_install.cmake
 z3
 z3-prefix
 z3test
+boolector
+boolector-prefix
+download

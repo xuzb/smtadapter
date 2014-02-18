@@ -20,11 +20,19 @@ set(SMT_LIBS_DIR ${SOLVER_SOURCE_DIR}/lib)
 # Z3 libraries
 set(Z3_LIBS ${SMT_LIBS_DIR}/z3/libz3.a pthread gomp rt)
 
-set(SMT_LIBS ${Z3_LIBS})
+# Boolector libraries
+set(BOOLECTOR_DIR ${SMT_LIBS_DIR}/boolector)
+set(BOOLECTOR_LIBS
+  ${BOOLECTOR_DIR}/libboolector.a
+  ${BOOLECTOR_DIR}/liblgl.a
+  ${BOOLECTOR_DIR}/libminisat.a
+  z m)
+
+set(SMT_LIBS ${Z3_LIBS} ${BOOLECTOR_LIBS})
 
 add_library(solver SolverAdapter.cpp Z3Adapter.cpp)
 
-add_dependencies(solver z3)
+add_dependencies(solver z3 boolector)
 
 if(IS_TOP_LEVEL)
   set(SOLVER_LIBS solver ${SMT_LIBS})
