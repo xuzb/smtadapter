@@ -20,6 +20,11 @@ set(SMT_LIBS_DIR ${SOLVER_SOURCE_DIR}/lib)
 # Z3 libraries
 set(Z3_LIBS ${SMT_LIBS_DIR}/z3/libz3.a pthread gomp rt)
 
+# Z3 include directories
+set(Z3_INCLUDES   
+  ${SMT_LIBS_DIR}/z3/src/api
+  ${SMT_LIBS_DIR}/z3/src/api/c++)
+
 # Boolector libraries
 set(BOOLECTOR_DIR ${SMT_LIBS_DIR}/boolector)
 set(BOOLECTOR_LIBS
@@ -27,6 +32,10 @@ set(BOOLECTOR_LIBS
   ${BOOLECTOR_DIR}/liblgl.a
   ${BOOLECTOR_DIR}/libminisat.a
   z m)
+
+# Boolector include directories
+set(BOOLECTOR_INCLUDES
+  ${BOOLECTOR_DIR}/boolector)
 
 set(SMT_LIBS ${Z3_LIBS} ${BOOLECTOR_LIBS})
 
@@ -40,9 +49,10 @@ else()
   set(SOLVER_LIBS solver ${SMT_LIBS} PARENT_SCOPE)
 endif()
 
+
 include_directories(
-  ${SMT_LIBS_DIR}/z3/src/api
-  ${SMT_LIBS_DIR}/z3/src/api/c++
+  ${Z3_INCLUDES}
+  ${BOOLECTOR_INCLUDES}
   ${SOLVER_SOURCE_DIR}/include)
 
 add_subdirectory(${SMT_LIBS_DIR})
