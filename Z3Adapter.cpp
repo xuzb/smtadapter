@@ -175,7 +175,7 @@ z3::expr Z3Adapter::genZ3Expr(const SymExpr *cond) {
       assert(e.is_bool());
       z3::expr trueBV = c.bv_val(1, newBitSize);
       z3::expr falseBV = c.bv_val(0, newBitSize);
-      return ite(e, trueBV, falseBV);
+      return z3::expr(c, Z3_mk_ite(c, e, trueBV, falseBV));
     }
 
     int oldBitSize = operand->getTypeBitSize();
