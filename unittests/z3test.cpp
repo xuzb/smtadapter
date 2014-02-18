@@ -267,9 +267,10 @@ void testZ3Adapter() {
   SymConstraint sc1(&bin3, true);
   adapter->assertSymConstraint(sc1);
   if(adapter->checkSat() == SAT_Satisfiable) {
-    //    adapter.printModel();
+    adapter->printModel();
   }
-
+  adapter->reset();
+  
   // x3 = 0xFFFFFFFF, extract(x3, 16) = x4
   // x5 = unsignedextend(x3, 48 - 32)
   // x6 = signedextend(x4, 32 - 16)
@@ -299,9 +300,10 @@ void testZ3Adapter() {
   adapter->assertSymConstraint(sc4);
   adapter->assertSymConstraint(sc5);
   if(adapter->checkSat() == SAT_Satisfiable) {
-    //    adapter.printModel();
+    adapter->printModel();
   }
-
+  adapter->reset();
+  
   // !(id[index1][index2] > x3)
   llvm::errs() << "// !(id[index1][index2] > x3)\n";
   ArraySymbol id(7, 32, 2);
@@ -313,9 +315,9 @@ void testZ3Adapter() {
   SymConstraint sc6(&bin8, false);
   adapter->assertSymConstraint(sc6);
   if(adapter->checkSat() == SAT_Satisfiable) {
-    //adapter->printModel();
+    adapter->printModel();
   }
-
+  adapter->reset();
 }
 
 void testMemLeak() {

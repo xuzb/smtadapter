@@ -31,6 +31,11 @@ SolverResult Z3Adapter::checkSat() {
   }
 }
 
+void Z3Adapter::reset() {
+  s.reset();
+  decls.clear();
+}
+
 void Z3Adapter::printModel() {
   z3::model m = s.get_model();
   std::ostringstream oss;

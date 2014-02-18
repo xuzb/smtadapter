@@ -21,6 +21,7 @@ public:
   
   z3::expr genZ3Expr(const SymExpr *cond);
   void printModel();
+  void reset();
 
 private:
   z3::expr genZ3Const(const ConstExpr *ce);
