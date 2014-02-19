@@ -5,7 +5,13 @@
 #include <vector>
 #include <assert.h>
 
+namespace llvm {
+class FoldingSetNodeID;
+}
+
 namespace solver {
+
+using llvm::FoldingSetNodeID;
 
 enum ArithOpcode {
   BO_Mul, BO_SDiv, BO_UDiv, BO_SRem, BO_URem,
@@ -63,6 +69,10 @@ public:
   Kind getKind() const { return kind; }
   virtual unsigned getTypeBitSize() const = 0;
 
+  virtual void Profile(FoldingSetNodeID &id) const {
+    assert(0 && "Cannot call Profile on SymExpr.");
+  }
+  
   static unsigned getArrayIndexTypeBitSize() {
     return 64;
   }
@@ -88,6 +98,7 @@ public:
 };
 
 class ScalarSymbol : public Symbol {
+protected:
   unsigned typeBitSize;
 
 public:
@@ -102,6 +113,7 @@ public:
 };
 
 class ArraySymbol : public Symbol {
+protected:
   unsigned elemTypeBitSize;
   unsigned nDimension;
   
@@ -162,6 +174,7 @@ public:
 };
 
 class ArithSymExpr : public BinSymExpr {
+protected:
   ArithOpcode opcode;
 
 public:
@@ -178,6 +191,7 @@ public:
 };
 
 class LogicalSymExpr : public BinSymExpr {
+protected:
   LogicalOpcode opcode;
 
 public:
@@ -215,6 +229,7 @@ public:
 };
 
 class CastSymExpr : public SymExpr {
+protected:
   const SymExpr *operand;
 
 public:
@@ -238,6 +253,7 @@ public:
 };
 
 class ExtendSymExpr : public CastSymExpr {
+protected:
   bool bSignedExt;
 
 public:
