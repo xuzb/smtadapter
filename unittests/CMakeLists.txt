@@ -1,8 +1,9 @@
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR})
-find_package(LLVM REQUIRED)
+find_package(LLVM)
 
 if( NOT LLVM_FOUND )
-  message(FATAL_ERROR "LLVM package can't be found. Set CMAKE_PREFIX_PATH variable to LLVM's installation prefix.")
+  message(STATUS "Warning: The targets in unittests cannot be compiled correctly as llvm is missing. These targets have been excluded.")
+  return()
 endif()
 
 include_directories(${LLVM_INCLUDE_DIRS})
@@ -16,3 +17,5 @@ endif()
 
 add_executable(z3test z3test.cpp)
 target_link_libraries(z3test ${SOLVER_LIBS} ${LLVM_MODULE_LIBS} ${LLVM_LDFLAGS} ${SYSTEM_SOLVER_LIBS})
+
+add_custom_target(unittests DEPENDS z3test)

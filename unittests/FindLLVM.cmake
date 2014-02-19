@@ -13,7 +13,8 @@ find_program(LLVM_CONFIG_EXECUTABLE llvm-config DOC "llvm-config executable")
 if (LLVM_CONFIG_EXECUTABLE)
   message(STATUS "LLVM llvm-config found at: ${LLVM_CONFIG_EXECUTABLE}")
 else (LLVM_CONFIG_EXECUTABLE)
-  message(FATAL_ERROR "Could NOT find LLVM executable")
+  message(STATUS "Warning: Could NOT find LLVM executable. Add llvm-config to your enviroment path.")
+  return()
 endif (LLVM_CONFIG_EXECUTABLE)
 
 execute_process(

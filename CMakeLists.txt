@@ -56,4 +56,4 @@ include_directories(
   ${SOLVER_SOURCE_DIR}/include)
 
 add_subdirectory(${SMT_LIBS_DIR})
-add_subdirectory(unittests)
+add_subdirectory(unittests EXCLUDE_FROM_ALL)
