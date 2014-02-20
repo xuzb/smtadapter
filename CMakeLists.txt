@@ -1,5 +1,5 @@
 if( CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR )
-  project(solver)
+  project(smtadapter)
   cmake_minimum_required(VERSION 2.8)
   set(CMAKE_VERBOSE_MAKEFILE on)
   set(IS_TOP_LEVEL TRUE)
@@ -13,9 +13,9 @@ endif()
 # Z3 depends on exceptions.
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fexceptions")
 
-set(SOLVER_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(SMTADAPTER_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
-set(SMT_LIBS_DIR ${SOLVER_SOURCE_DIR}/lib)
+set(SMT_LIBS_DIR ${SMTADAPTER_SOURCE_DIR}/lib)
 
 # Z3 libraries
 set(Z3_LIBS ${SMT_LIBS_DIR}/z3/libz3.a pthread gomp rt)
@@ -39,21 +39,21 @@ set(BOOLECTOR_INCLUDES
 
 set(SMT_LIBS ${Z3_LIBS} ${BOOLECTOR_LIBS})
 
-add_library(solver SolverAdapter.cpp Z3Adapter.cpp)
+add_library(smtadapter SolverAdapter.cpp Z3Adapter.cpp)
 
-add_dependencies(solver z3 boolector)
+add_dependencies(smtadapter z3 boolector)
 
 if(IS_TOP_LEVEL)
-  set(SOLVER_LIBS solver ${SMT_LIBS})
+  set(SMTADAPTER_LIBS smtadapter ${SMT_LIBS})
 else()
-  set(SOLVER_LIBS solver ${SMT_LIBS} PARENT_SCOPE)
+  set(SMTADAPTER_LIBS smtadapter ${SMT_LIBS} PARENT_SCOPE)
 endif()
 
 
 include_directories(
   ${Z3_INCLUDES}
   ${BOOLECTOR_INCLUDES}
-  ${SOLVER_SOURCE_DIR}/include)
+  ${SMTADAPTER_SOURCE_DIR}/include)
 
 add_subdirectory(${SMT_LIBS_DIR})
 add_subdirectory(unittests EXCLUDE_FROM_ALL)
