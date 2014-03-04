@@ -11,7 +11,7 @@ endif ()
 ExternalProject_Add(z3
    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/z3
    BUILD_IN_SOURCE 1
-   GIT_REPOSITORY https://git01.codeplex.com/forks/xuzb/z3static
+   GIT_REPOSITORY https://github.com/xuzb/z3static
    GIT_TAG master
    UPDATE_COMMAND ""
    CONFIGURE_COMMAND autoconf COMMAND ./configure COMMAND ${Z3_MK_MAKE_CMD}
