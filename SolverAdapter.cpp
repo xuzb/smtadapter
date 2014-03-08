@@ -1,4 +1,4 @@
-#include "SolverAdapter.h"
+#include "smtadapter/SolverAdapter.h"
 #include "Z3Adapter.h"
 
 namespace solver {
