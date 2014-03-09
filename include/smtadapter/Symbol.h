@@ -55,10 +55,10 @@ public:
       
       BEGIN_SYMBOL,
       S_ScalarSymbol = BEGIN_SYMBOL,
-      S_ArraySymbol,
-      END_SYMBOL = S_ArraySymbol,
+      S_RegionSymbol,
+      END_SYMBOL = S_RegionSymbol,
       
-      END_SYMEXPR = S_ArraySymbol
+      END_SYMEXPR = S_RegionSymbol
   };
 
 protected:
@@ -112,17 +112,17 @@ public:
   }
 };
 
-class ArraySymbol : public Symbol {
+class RegionSymbol : public Symbol {
 protected:
   unsigned elemTypeBitSize;
   unsigned nDimension;
   
 public:
-  ArraySymbol(unsigned id, unsigned elemTypeSize, unsigned nDim)
-    : Symbol(S_ArraySymbol, id), elemTypeBitSize(elemTypeSize), nDimension(nDim) {}
+  RegionSymbol(unsigned id, unsigned elemTypeSize, unsigned nDim)
+    : Symbol(S_RegionSymbol, id), elemTypeBitSize(elemTypeSize), nDimension(nDim) {}
 
   virtual unsigned getTypeBitSize() const {
-    assert(0 && "Should not call getTypeBitSize() on ArraySymbol.");
+    assert(0 && "Should not call getTypeBitSize() on RegionSymbol.");
   }
 
   unsigned getNumberDimension() const { return nDimension; }
@@ -131,7 +131,7 @@ public:
   }
   
   static bool classof(const SymExpr *se) {
-    return se->getKind() == S_ArraySymbol;
+    return se->getKind() == S_RegionSymbol;
   }
 };
 

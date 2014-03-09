@@ -63,8 +63,8 @@ z3::expr Z3Adapter::genZ3Expr(const SymExpr *cond) {
       decls.insert(std::pair<unsigned, z3::expr>(id, e));
       return e;
     }
-  } else if(ArraySymbol::classof(cond)) {
-    const ArraySymbol *asym = static_cast<const ArraySymbol *>(cond);
+  } else if(RegionSymbol::classof(cond)) {
+    const RegionSymbol *asym = static_cast<const RegionSymbol *>(cond);
     unsigned id = asym->getSymbolID();
     std::map<unsigned, z3::expr>::iterator it = decls.find(id);
     if (it != decls.end()) {

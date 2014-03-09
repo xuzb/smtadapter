@@ -149,7 +149,7 @@ void testZ3ElemSymExpr() {
   Z3Adapter adapter(timeout);
 
   // 1 dimension array, int id[index]
-  ArraySymbol id(1, 32, 1);
+  RegionSymbol id(1, 32, 1);
   Z3Symbol index(2, SymExpr::getArrayIndexTypeBitSize(), false);
   Z3ElemSymExpr a(&id, &index, false);
   z3::expr exa = adapter.genZ3Expr(&a);
@@ -158,7 +158,7 @@ void testZ3ElemSymExpr() {
   llvm::errs() << oss.str();
 
   // 2 dimension array, int id2[index1][index2]
-  ArraySymbol id2(3, 32, 2);
+  RegionSymbol id2(3, 32, 2);
   Z3Symbol index1(4, SymExpr::getArrayIndexTypeBitSize(), true);
   Z3Symbol index2(5, SymExpr::getArrayIndexTypeBitSize(), true);
   Z3ElemSymExpr b(&id2, &index1, true);
@@ -314,7 +314,7 @@ void testZ3Adapter() {
   
   // !(id[index1][index2] > x3)
   llvm::errs() << "// !(id[index1][index2] > x3)\n";
-  ArraySymbol id(7, 32, 2);
+  RegionSymbol id(7, 32, 2);
   Z3Symbol index1(8, SymExpr::getArrayIndexTypeBitSize(), true);
   Z3Symbol index2(9, SymExpr::getArrayIndexTypeBitSize(), true);
   Z3ElemSymExpr ese1(&id, &index1, true);
