@@ -98,14 +98,9 @@ public:
 };
 
 class ScalarSymbol : public Symbol {
-protected:
-  unsigned typeBitSize;
-
 public:
-  ScalarSymbol(unsigned id, unsigned bitsize)
-    : Symbol(S_ScalarSymbol, id), typeBitSize(bitsize) {}
-
-  virtual unsigned getTypeBitSize() const { return typeBitSize; }
+  ScalarSymbol(unsigned id)
+    : Symbol(S_ScalarSymbol, id) {}
 
   static bool classof(const SymExpr *se) {
     return se->getKind() == S_ScalarSymbol;
@@ -113,22 +108,16 @@ public:
 };
 
 class RegionSymbol : public Symbol {
-protected:
-  unsigned elemTypeBitSize;
-  unsigned nDimension;
-  
 public:
-  RegionSymbol(unsigned id, unsigned elemTypeSize, unsigned nDim)
-    : Symbol(S_RegionSymbol, id), elemTypeBitSize(elemTypeSize), nDimension(nDim) {}
+  RegionSymbol(unsigned id)
+    : Symbol(S_RegionSymbol, id) {}
 
   virtual unsigned getTypeBitSize() const {
     assert(0 && "Should not call getTypeBitSize() on RegionSymbol.");
   }
 
-  unsigned getNumberDimension() const { return nDimension; }
-  unsigned getElementTypeBitSize() const {
-    return elemTypeBitSize;
-  }
+  virtual unsigned getNumberDimension() const = 0;
+  virtual unsigned getElementTypeBitSize() const = 0;
   
   static bool classof(const SymExpr *se) {
     return se->getKind() == S_RegionSymbol;

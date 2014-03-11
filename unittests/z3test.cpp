@@ -8,14 +8,34 @@ using namespace solver;
 class Z3Symbol : public ScalarSymbol {
 public:
   Z3Symbol(unsigned id, unsigned size, bool b) :
-    ScalarSymbol(id, size), sign(b) {}
+    ScalarSymbol(id), bitsize(size), sign(b) {}
 
   virtual bool isSigned() const {
     return sign;
   }
 
+  virtual unsigned getTypeBitSize() const { return bitsize; }
 private:
+  unsigned bitsize;
   bool sign;
+};
+
+class Z3RegionSymbol : public RegionSymbol {
+public:
+  Z3RegionSymbol(unsigned id, unsigned elembitsize, unsigned nDim)
+    : RegionSymbol(id), elemBitSize(elembitsize), nDimension(nDim) {}
+
+  virtual unsigned getNumberDimension() const {
+    return nDimension;
+  }
+  
+  virtual unsigned getElementTypeBitSize() const {
+    return elemBitSize;
+  }
+
+private:
+  unsigned elemBitSize;
+  unsigned nDimension;
 };
 
 class Z3ElemSymExpr : public ElemSymExpr {
@@ -149,7 +169,7 @@ void testZ3ElemSymExpr() {
   Z3Adapter adapter(timeout);
 
   // 1 dimension array, int id[index]
-  RegionSymbol id(1, 32, 1);
+  Z3RegionSymbol id(1, 32, 1);
   Z3Symbol index(2, SymExpr::getArrayIndexTypeBitSize(), false);
   Z3ElemSymExpr a(&id, &index, false);
   z3::expr exa = adapter.genZ3Expr(&a);
@@ -158,7 +178,7 @@ void testZ3ElemSymExpr() {
   llvm::errs() << oss.str();
 
   // 2 dimension array, int id2[index1][index2]
-  RegionSymbol id2(3, 32, 2);
+  Z3RegionSymbol id2(3, 32, 2);
   Z3Symbol index1(4, SymExpr::getArrayIndexTypeBitSize(), true);
   Z3Symbol index2(5, SymExpr::getArrayIndexTypeBitSize(), true);
   Z3ElemSymExpr b(&id2, &index1, true);
@@ -314,7 +334,7 @@ void testZ3Adapter() {
   
   // !(id[index1][index2] > x3)
   llvm::errs() << "// !(id[index1][index2] > x3)\n";
-  RegionSymbol id(7, 32, 2);
+  Z3RegionSymbol id(7, 32, 2);
   Z3Symbol index1(8, SymExpr::getArrayIndexTypeBitSize(), true);
   Z3Symbol index2(9, SymExpr::getArrayIndexTypeBitSize(), true);
   Z3ElemSymExpr ese1(&id, &index1, true);
