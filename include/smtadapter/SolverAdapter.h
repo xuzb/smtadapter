@@ -1,5 +1,5 @@
-#ifndef LASER_SMTADAPTER_H    // -*- C++ -*-
-#define LASER_SMTADAPTER_H
+#ifndef SMTADAPTER_SOLVER_ADAPTER_H    // -*- C++ -*-
+#define SMTADAPTER_SOLVER_ADAPTER_H
 
 namespace smtadapter {
 

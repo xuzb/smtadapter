@@ -1,17 +1,11 @@
-#ifndef LASER_SYMBOL_H    // -*- C++ -*-
-#define LASER_SYMBOL_H
+#ifndef SMTADAPTER_SYMBOL_H    // -*- C++ -*-
+#define SMTADAPTER_SYMBOL_H
 #include <string>
 #include <sstream>
 #include <vector>
 #include <assert.h>
 
-namespace llvm {
-class FoldingSetNodeID;
-}
-
 namespace smtadapter {
-
-using llvm::FoldingSetNodeID;
 
 enum ArithOpcode {
   BO_Mul, BO_SDiv, BO_UDiv, BO_SRem, BO_URem,
@@ -69,10 +63,6 @@ public:
   Kind getKind() const { return kind; }
   virtual unsigned getTypeBitSize() const = 0;
 
-  virtual void Profile(FoldingSetNodeID &id) const {
-    assert(0 && "Cannot call Profile on SymExpr.");
-  }
-  
   static unsigned getArrayIndexTypeBitSize() {
     return 64;
   }

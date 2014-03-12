@@ -1,5 +1,5 @@
-#ifndef LASER_Z3_ADAPTER_H	// -*- C++ -*-
-#define LASER_Z3_ADAPTER_H
+#ifndef SMTADAPTER_Z3_ADAPTER_H	// -*- C++ -*-
+#define SMTADAPTER_Z3_ADAPTER_H
 #include "smtadapter/SolverAdapter.h"
 #include "smtadapter/Symbol.h"
 #include "lib/z3/src/api/c++/z3++.h"
