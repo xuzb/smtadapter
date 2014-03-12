@@ -1,7 +1,7 @@
-#ifndef LASER_SOLVER_H    // -*- C++ -*-
-#define LASER_SOLVER_H
+#ifndef LASER_SMTADAPTER_H    // -*- C++ -*-
+#define LASER_SMTADAPTER_H
 
-namespace solver {
+namespace smtadapter {
 
 class SymExpr;
 

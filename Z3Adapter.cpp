@@ -2,7 +2,7 @@
 #include <string>
 #include <sstream>
 
-using namespace solver;
+using namespace smtadapter;
 
 Z3Adapter::Z3Adapter() : timeout(5000), c(), s(c) {
   z3::params p(c);

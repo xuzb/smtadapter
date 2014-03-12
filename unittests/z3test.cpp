@@ -3,7 +3,7 @@
 #include "llvm/ADT/APSInt.h"
 #include "llvm/Support/raw_ostream.h"
 using namespace llvm;
-using namespace solver;
+using namespace smtadapter;
 
 class Z3Symbol : public ScalarSymbol {
 public:

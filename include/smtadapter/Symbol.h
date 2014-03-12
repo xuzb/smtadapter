@@ -9,7 +9,7 @@ namespace llvm {
 class FoldingSetNodeID;
 }
 
-namespace solver {
+namespace smtadapter {
 
 using llvm::FoldingSetNodeID;
 

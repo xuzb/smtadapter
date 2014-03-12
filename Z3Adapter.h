@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-namespace solver {
+namespace smtadapter {
 
 
 class Z3Adapter : public SolverAdapter {
