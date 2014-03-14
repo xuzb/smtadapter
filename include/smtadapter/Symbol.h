@@ -5,7 +5,13 @@
 #include <vector>
 #include <assert.h>
 
+namespace llvm {
+class Type;
+}
+
 namespace smtadapter {
+
+using llvm::Type;
 
 enum ArithOpcode {
   BO_Mul, BO_SDiv, BO_UDiv, BO_SRem, BO_URem,
@@ -62,6 +68,9 @@ public:
   SymExpr(Kind k) : kind(k) {}
   Kind getKind() const { return kind; }
   virtual unsigned getTypeBitSize() const = 0;
+  virtual Type *getType() const {
+    assert(0 && "Cannot call getType on SymExpr.");
+  }
 
   static unsigned getArrayIndexTypeBitSize() {
     return 64;
