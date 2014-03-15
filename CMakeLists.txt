@@ -43,10 +43,9 @@ add_library(smtadapter SolverAdapter.cpp Z3Adapter.cpp)
 
 add_dependencies(smtadapter z3 boolector)
 
-if(IS_TOP_LEVEL)
-  set(SMTADAPTER_LIBS smtadapter ${SMT_LIBS})
-else()
-  set(SMTADAPTER_LIBS smtadapter ${SMT_LIBS} PARENT_SCOPE)
+set(SMTADAPTER_LIBS smtadapter ${SMT_LIBS})
+if(NOT IS_TOP_LEVEL)
+set(SMTADAPTER_LIBS smtadapter ${SMT_LIBS} PARENT_SCOPE)
 endif()
 
 
