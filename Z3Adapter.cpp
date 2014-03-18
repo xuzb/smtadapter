@@ -1,4 +1,5 @@
 #include "Z3Adapter.h"
+#include <cstdlib>
 #include <string>
 #include <sstream>
 
@@ -56,7 +57,7 @@ z3::expr Z3Adapter::genZ3Expr(const SymExpr *cond) {
   switch (cond->getKind()) {
   default: {
     assert(0 && "Unprocessed z3 expr.");
-    _exit(1);
+    exit(1);
   }
   case SymExpr::S_ScalarSymbol: {
     const Symbol *sym = static_cast<const Symbol *>(cond);
