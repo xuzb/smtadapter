@@ -1,7 +1,7 @@
 #include "smtadapter/SolverAdapter.h"
 #include "Z3Adapter.h"
 
-namespace smtadapter {
+namespace smt {
 SolverAdapter *CreateZ3SolverAdapter() {
   return new Z3Adapter();
 }

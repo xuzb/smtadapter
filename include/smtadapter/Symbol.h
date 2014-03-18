@@ -9,7 +9,7 @@ namespace llvm {
 class Type;
 }
 
-namespace smtadapter {
+namespace smt {
 
 using llvm::Type;
 

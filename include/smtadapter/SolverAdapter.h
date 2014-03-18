@@ -1,7 +1,7 @@
 #ifndef SMTADAPTER_SOLVER_ADAPTER_H    // -*- C++ -*-
 #define SMTADAPTER_SOLVER_ADAPTER_H
 
-namespace smtadapter {
+namespace smt {
 
 class SymExpr;
 

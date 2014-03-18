@@ -3,7 +3,7 @@
 #include <string>
 #include <sstream>
 
-using namespace smtadapter;
+using namespace smt;
 
 Z3Adapter::Z3Adapter() : timeout(5000), c(), s(c) {
   z3::params p(c);
