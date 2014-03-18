@@ -23,12 +23,14 @@ SolverResult Z3Adapter::checkSat() {
   if(result == z3::sat)
     return SAT_Satisfiable;
   if(result == z3::unknown) {
-	std::string reason = s.reason_unknown();
-	if(reason == "timeout")
-	  return SAT_Timeout;
-	else
-    return SAT_Undetermined;
+    std::string reason = s.reason_unknown();
+    if(reason == "timeout")
+      return SAT_Timeout;
+    else
+      return SAT_Undetermined;
   }
+  assert(0 && "Unknown z3 result.");
+  return SAT_Undetermined;
 }
 
 void Z3Adapter::reset() {
@@ -51,7 +53,12 @@ void Z3Adapter::assertSymConstraint(const SymConstraint &sc) {
 }
 
 z3::expr Z3Adapter::genZ3Expr(const SymExpr *cond) {
-  if(ScalarSymbol::classof(cond)) {
+  switch (cond->getKind()) {
+  default: {
+    assert(0 && "Unprocessed z3 expr.");
+    _exit(1);
+  }
+  case SymExpr::S_ScalarSymbol: {
     const Symbol *sym = static_cast<const Symbol *>(cond);
     unsigned id = sym->getSymbolID();
     std::map<unsigned, z3::expr>::iterator it = decls.find(id);
@@ -63,7 +70,8 @@ z3::expr Z3Adapter::genZ3Expr(const SymExpr *cond) {
       decls.insert(std::pair<unsigned, z3::expr>(id, e));
       return e;
     }
-  } else if(RegionSymbol::classof(cond)) {
+  }
+  case SymExpr::S_RegionSymbol: {
     const RegionSymbol *asym = static_cast<const RegionSymbol *>(cond);
     unsigned id = asym->getSymbolID();
     std::map<unsigned, z3::expr>::iterator it = decls.find(id);
@@ -82,12 +90,14 @@ z3::expr Z3Adapter::genZ3Expr(const SymExpr *cond) {
       decls.insert(std::pair<unsigned, z3::expr>(id, e));
       return e;
     }
-  } else if(ElemSymExpr::classof(cond)) {
+  }
+  case SymExpr::S_ElemSymExpr: {
     const ElemSymExpr *elem = static_cast<const ElemSymExpr *>(cond);
     z3::expr base = genZ3Expr(elem->getBaseExpr());
     z3::expr index = genZ3Expr(elem->getIndexExpr());
     return select(base, index);
-  } else if(ArithSymExpr::classof(cond)) {
+  }
+  case SymExpr::S_ArithSymExpr: {
     const ArithSymExpr *bin = static_cast<const ArithSymExpr *>(cond);
     const SymExpr *lhs = bin->getLHS();
     const SymExpr *rhs = bin->getRHS();
@@ -122,7 +132,8 @@ z3::expr Z3Adapter::genZ3Expr(const SymExpr *cond) {
     case BO_Or:
       return z3::expr(c, Z3_mk_bvor(c, e1, e2));
     }
-  } else if(LogicalSymExpr::classof(cond)) {
+  }
+  case SymExpr::S_LogicalSymExpr: {
     const LogicalSymExpr *bin = static_cast<const LogicalSymExpr *>(cond);
     const SymExpr *lhs = bin->getLHS();
     const SymExpr *rhs = bin->getRHS();
@@ -157,7 +168,8 @@ z3::expr Z3Adapter::genZ3Expr(const SymExpr *cond) {
     case BO_LOr:
       return e1 || e2;
     }
-  } else if(UnarySymExpr::classof(cond)) {
+  }
+  case SymExpr::S_UnarySymExpr: {
     const UnarySymExpr *un = static_cast<const UnarySymExpr *>(cond);
     const SymExpr *operand = un->getOperand();
     z3::expr e = genZ3Expr(operand);
@@ -169,13 +181,15 @@ z3::expr Z3Adapter::genZ3Expr(const SymExpr *cond) {
       case UO_LNot:
         return !e;
     }
-  } else if (TruncSymExpr::classof(cond)) {
+  }
+  case SymExpr::S_TruncSymExpr: {
     const TruncSymExpr *ce = static_cast<const TruncSymExpr *>(cond);
     const SymExpr *operand = ce->getOperand();
     z3::expr e = genZ3Expr(operand);
     
     return z3::expr(c, Z3_mk_extract(c, ce->getTypeBitSize() - 1, 0, e));
-  } else if (ExtendSymExpr::classof(cond)) {
+  }
+  case SymExpr::S_ExtendSymExpr: {
     const ExtendSymExpr *ce = static_cast<const ExtendSymExpr *>(cond);
     const SymExpr *operand = ce->getOperand();
     z3::expr e = genZ3Expr(operand);
@@ -198,9 +212,11 @@ z3::expr Z3Adapter::genZ3Expr(const SymExpr *cond) {
     } else {
       return z3::expr(c, Z3_mk_zero_ext(c, sizeDiff, e));
     }
-  } else if(ConstExpr::classof(cond)) {
+  }
+  case SymExpr::S_ConstExpr: {
     const ConstExpr *ce = static_cast<const ConstExpr *>(cond);
     return genZ3Const(ce);
+  }
   }
 }
 
