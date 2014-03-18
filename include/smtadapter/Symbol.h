@@ -7,11 +7,13 @@
 
 namespace llvm {
 class Type;
+class raw_ostream;
 }
 
 namespace smt {
 
 using llvm::Type;
+using llvm::raw_ostream;
 
 enum ArithOpcode {
   BO_Mul, BO_SDiv, BO_UDiv, BO_SRem, BO_URem,
@@ -67,6 +69,15 @@ protected:
 public:
   SymExpr(Kind k) : kind(k) {}
   Kind getKind() const { return kind; }
+  virtual std::string toString() const {
+    // FIXME: Implemented toString function
+    assert(0 && "The base toString() function is not impleneted.");
+  }
+
+  virtual void print(raw_ostream &os) const {
+    assert(0 && "Cannot implement print() on SymExpr.");
+  }
+  
   virtual unsigned getTypeBitSize() const = 0;
   virtual Type *getType() const {
     assert(0 && "Cannot call getType on SymExpr.");
