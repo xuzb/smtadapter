@@ -18,7 +18,7 @@ public:
     return 8;
   }
 
-  virtual unsigned getArrayIndexTypeSizeInBits() {
+  unsigned getArrayIndexTypeSizeInBits() {
     return getArrayIndexTypeSize() * 8;
   }
 
