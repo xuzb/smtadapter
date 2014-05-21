@@ -1,3 +1,4 @@
+#include "smtadapter/SolverContext.h"
 #include "Z3Adapter.h"
 #include <cstdlib>
 #include <string>
@@ -5,13 +6,15 @@
 
 using namespace smt;
 
-Z3Adapter::Z3Adapter() : timeout(5000), c(), s(c) {
+Z3Adapter::Z3Adapter(SolverContext &sc)
+: SolverAdapter(sc), timeout(5000), c(), s(c) {
   z3::params p(c);
   p.set(":timeout", timeout);
   s.set(p);
 }
 
-Z3Adapter::Z3Adapter(unsigned t) : timeout(t), c(), s(c) {
+Z3Adapter::Z3Adapter(SolverContext &sc, unsigned t)
+: SolverAdapter(sc), timeout(t), c(), s(c) {
   z3::params p(c);
   p.set(":timeout", timeout);
   s.set(p);
@@ -67,7 +70,7 @@ z3::expr Z3Adapter::genZ3Expr(const SymExpr *cond) {
       return (it->second);
     } else {
       z3::expr e(c, c.bv_const(sym->getSymName().c_str(),
-                               sym->getTypeBitSize()));
+                               sym->getTypeSizeInBits(ctx)));
       decls.insert(std::pair<unsigned, z3::expr>(id, e));
       return e;
     }
@@ -79,9 +82,9 @@ z3::expr Z3Adapter::genZ3Expr(const SymExpr *cond) {
     if (it != decls.end()) {
       return it->second;
     } else {
-      unsigned indexSize = SymExpr::getArrayIndexTypeBitSize();
-      unsigned elemSize = asym->getElementTypeBitSize();
-      unsigned nDim = asym->getNumberDimension();
+      unsigned indexSize = ctx.getArrayIndexTypeSizeInBits();
+      unsigned elemSize = asym->getElementTypeSizeInBits(ctx);
+      unsigned nDim = asym->getNumberDimension(ctx);
       z3::sort indexSort = c.bv_sort(indexSize);
       z3::sort valueSort = c.bv_sort(elemSize);
       for (int i = 0; i < nDim; ++i) {
@@ -188,13 +191,13 @@ z3::expr Z3Adapter::genZ3Expr(const SymExpr *cond) {
     const SymExpr *operand = ce->getOperand();
     z3::expr e = genZ3Expr(operand);
     
-    return z3::expr(c, Z3_mk_extract(c, ce->getTypeBitSize() - 1, 0, e));
+    return z3::expr(c, Z3_mk_extract(c, ce->getTypeSizeInBits(ctx) - 1, 0, e));
   }
   case SymExpr::S_ExtendSymExpr: {
     const ExtendSymExpr *ce = static_cast<const ExtendSymExpr *>(cond);
     const SymExpr *operand = ce->getOperand();
     z3::expr e = genZ3Expr(operand);
-    int newBitSize = ce->getTypeBitSize();
+    int newBitSize = ce->getTypeSizeInBits(ctx);
 
     // LogicalSymExpr is a Boolean expr that shoud be evaluated by using ite.
     if (LogicalSymExpr::classof(operand)) {
@@ -204,7 +207,7 @@ z3::expr Z3Adapter::genZ3Expr(const SymExpr *cond) {
       return z3::expr(c, Z3_mk_ite(c, e, trueBV, falseBV));
     }
 
-    int oldBitSize = operand->getTypeBitSize();
+    int oldBitSize = operand->getTypeSizeInBits(ctx);
     int sizeDiff = newBitSize - oldBitSize;
     assert(sizeDiff > 0 && "The targe type size should be greater than old type size.");
 
@@ -222,7 +225,7 @@ z3::expr Z3Adapter::genZ3Expr(const SymExpr *cond) {
 }
 
 z3::expr Z3Adapter::genZ3Const(const ConstExpr *ce) {
-  unsigned sz = ce->getTypeBitSize();
+  unsigned sz = ce->getTypeSizeInBits(ctx);
   if (ce->isSigned())
     return c.bv_val((__int64)ce->getValue(), sz);
   else return c.bv_val((__uint64)ce->getValue(), sz);

@@ -1,5 +1,6 @@
 #ifndef SMTADAPTER_SYMBOL_H    // -*- C++ -*-
 #define SMTADAPTER_SYMBOL_H
+#include "SolverContext.h"
 #include <string>
 #include <sstream>
 #include <vector>
@@ -77,15 +78,16 @@ public:
   virtual void print(raw_ostream &os) const {
     assert(0 && "Cannot implement print() on SymExpr.");
   }
+
+  // For llvm compatibility. If you don't need llvm, overide this function.
+  virtual unsigned getTypeSizeInBits(SolverContext &ctx) const {
+    return ctx.getTypeSizeInBits(getType());
+  }
   
-  virtual unsigned getTypeBitSize() const = 0;
   virtual Type *getType() const {
     assert(0 && "Cannot call getType on SymExpr.");
   }
 
-  static unsigned getArrayIndexTypeBitSize() {
-    return 64;
-  }
 };
 
 class Symbol : public SymExpr {
@@ -122,12 +124,20 @@ public:
   RegionSymbol(unsigned id)
     : Symbol(S_RegionSymbol, id) {}
 
-  virtual unsigned getTypeBitSize() const {
-    assert(0 && "Should not call getTypeBitSize() on RegionSymbol.");
+  virtual unsigned getTypeSizeInBits(SolverContext &) const {
+    assert(0 && "Should not call getTypeSizeInBits() on RegionSymbol.");
   }
 
-  virtual unsigned getNumberDimension() const = 0;
-  virtual unsigned getElementTypeBitSize() const = 0;
+  virtual unsigned getNumberDimension(SolverContext &) const = 0;
+
+  // For llvm compatibility. If you don't need llvm, overide this function.
+  virtual unsigned getElementTypeSizeInBits(SolverContext &ctx) const {
+    return ctx.getTypeSizeInBits(getElementType());
+  }
+  
+  virtual Type *getElementType() const {
+    assert(0 && "Cannot call getElementType in RegionSymbol.");
+  }
   
   static bool classof(const SymExpr *se) {
     return se->getKind() == S_RegionSymbol;
@@ -146,8 +156,8 @@ public:
   const SymExpr *getBaseExpr() const { return baseExpr; }
   const SymExpr *getIndexExpr() const { return indexExpr; }
 
-  virtual unsigned getTypeBitSize() const {
-    assert(0 && "Should not call getTypeBitSize() on ElemSymExpr.");
+  virtual unsigned getTypeSizeInBits(SolverContext &) const {
+    assert(0 && "Should not call getTypeSizeInBits() on ElemSymExpr.");
   }
   
   static bool classof(const SymExpr *se) {
@@ -182,7 +192,9 @@ public:
 
   ArithOpcode getOpcode() const { return opcode; }
 
-  virtual unsigned getTypeBitSize() const { return lhs->getTypeBitSize(); }
+  virtual unsigned getTypeSizeInBits(SolverContext &ctx) const {
+    return lhs->getTypeSizeInBits(ctx);
+  }
 
   static bool classof(const SymExpr *se) {
     return se->getKind() == S_ArithSymExpr;
@@ -199,7 +211,7 @@ public:
 
   LogicalOpcode getOpcode() const { return opcode; }
 
-  virtual unsigned getTypeBitSize() const { return 1; }
+  virtual unsigned getTypeSizeInBits(SolverContext &) const { return 1; }
 
   static bool classof(const SymExpr *se) {
     return se->getKind() == S_LogicalSymExpr;
@@ -218,8 +230,8 @@ public:
   const SymExpr *getOperand() const { return operand; }
   UnaryOpcode getUnaryOpcode() const { return uo; }
 
-  virtual unsigned getTypeBitSize() const {
-    return operand->getTypeBitSize();
+  virtual unsigned getTypeSizeInBits(SolverContext &ctx) const {
+    return operand->getTypeSizeInBits(ctx);
   }
   
   static bool classof(const SymExpr *se) {

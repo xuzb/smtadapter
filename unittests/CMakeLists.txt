@@ -10,11 +10,14 @@ include_directories(${LLVM_INCLUDE_DIRS})
 link_directories(${LLVM_LIBRARY_DIRS})
 add_definitions(${LLVM_CFLAGS})
 
-set(LLVM_MODULE_LIBS ${LLVM_MODULE_LIBS} z pthread dl m)
+set(LLVM_MODULE_LIBS "${LLVM_MODULE_LIBS} z pthread dl m")
 find_library(TINFO_LIBRARY tinfo)
 if (TINFO_LIBRARY)
-  set(LLVM_MODULE_LIBS ${LLVM_MODULE_LIBS} tinfo)
+  set(LLVM_MODULE_LIBS "${LLVM_MODULE_LIBS} tinfo")
 endif()
+
+# FIXME: How to make LLVM_LIBS as a list of strings more easier.
+string(REPLACE " " ";" LLVM_MODULE_LIBS ${LLVM_MODULE_LIBS})
 
 add_executable(z3test z3test.cpp)
 target_link_libraries(z3test ${SMTADAPTER_LIBS} ${LLVM_MODULE_LIBS} ${LLVM_LDFLAGS})

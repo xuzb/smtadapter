@@ -4,6 +4,7 @@
 namespace smt {
 
 class SymExpr;
+class SolverContext;
 
 enum SolverResult {
   SAT_Satisfiable = 0,
@@ -26,7 +27,13 @@ struct SymConstraint {
 };
 
 class SolverAdapter {
-public:
+protected:
+  SolverContext &ctx;
+
+protected:
+  SolverAdapter(SolverContext &c) : ctx(c) {}
+
+public:  
   // Check the current asserted fomulars.
   virtual SolverResult checkSat() = 0;
   virtual void assertSymConstraint(const SymConstraint &sc) = 0;
@@ -34,7 +41,7 @@ public:
   virtual void reset() = 0;
 };
 
-SolverAdapter *CreateZ3SolverAdapter();
+SolverAdapter *CreateZ3SolverAdapter(SolverContext &c);
 
 }
 

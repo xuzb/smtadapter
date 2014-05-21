@@ -12,8 +12,8 @@ namespace smt {
 
 class Z3Adapter : public SolverAdapter {
 public:
-  Z3Adapter();
-  Z3Adapter(unsigned t);
+  Z3Adapter(SolverContext &sc);
+  Z3Adapter(SolverContext &sc, unsigned t);
 
   //override
   virtual SolverResult checkSat();

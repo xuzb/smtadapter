@@ -1,4 +1,6 @@
 #include "../Z3Adapter.h"
+#include "smtadapter/SolverContext.h"
+
 #include <sstream>
 #include "llvm/ADT/APSInt.h"
 #include "llvm/Support/raw_ostream.h"
@@ -14,7 +16,7 @@ public:
     return sign;
   }
 
-  virtual unsigned getTypeBitSize() const { return bitsize; }
+  virtual unsigned getTypeSizeInBits(SolverContext &ctx) const { return bitsize; }
 private:
   unsigned bitsize;
   bool sign;
@@ -25,11 +27,11 @@ public:
   Z3RegionSymbol(unsigned id, unsigned elembitsize, unsigned nDim)
     : RegionSymbol(id), elemBitSize(elembitsize), nDimension(nDim) {}
 
-  virtual unsigned getNumberDimension() const {
+  virtual unsigned getNumberDimension(SolverContext &ctx) const {
     return nDimension;
   }
   
-  virtual unsigned getElementTypeBitSize() const {
+  virtual unsigned getElementTypeSizeInBits(SolverContext &) const {
     return elemBitSize;
   }
 
@@ -76,7 +78,7 @@ class Z3TruncSymExpr : public TruncSymExpr {
 public:
   Z3TruncSymExpr(int bs, const SymExpr *op) : TruncSymExpr(op), bitsize(bs) {}
 
-  virtual unsigned getTypeBitSize() const { return bitsize; }
+  virtual unsigned getTypeSizeInBits(SolverContext &ctx) const { return bitsize; }
 };
 
 class Z3ExtendSymExpr : public ExtendSymExpr {
@@ -84,8 +86,8 @@ public:
   Z3ExtendSymExpr(int nbz, bool sext, const SymExpr *op)
     : ExtendSymExpr(op, sext), newBitSize(nbz) {}
 
-  virtual unsigned getTypeBitSize() const {return newBitSize;}
-  int getOldBitSize() const {return getOperand()->getTypeBitSize();}
+  virtual unsigned getTypeSizeInBits(SolverContext &ctx) const {return newBitSize;}
+  int getOldBitSize(SolverContext &ctx) const {return getOperand()->getTypeSizeInBits(ctx);}
 
 private:
   unsigned newBitSize;
@@ -104,7 +106,7 @@ public:
 
   virtual long long getValue() const { return val->getZExtValue(); }
 
-  virtual unsigned getTypeBitSize() const { return val->getBitWidth(); }
+  virtual unsigned getTypeSizeInBits(SolverContext &ctx) const { return val->getBitWidth(); }
 };
 
 void testZ3Symbol();
@@ -114,6 +116,8 @@ void testZ3UnarySymExpr();
 void testZ3IntCastSymExpr();
 void testZ3Adapter();
 void testMemLeak();
+
+SolverContext ctx;
 
 int main() {
   // Test Z3Symbol
@@ -142,7 +146,7 @@ void testZ3Symbol() {
   llvm::errs() << "Test Z3Symbol . . .\n";
 
   unsigned timeout = 1000;  // 1 second
-  Z3Adapter adapter(timeout);
+  Z3Adapter adapter(ctx, timeout);
 
   // Unsigned int x1
   Z3Symbol x1(1, 32, false);
@@ -166,11 +170,11 @@ void testZ3ElemSymExpr() {
   llvm::errs() << "Test Z3ElemSymbol ...\n";
 
   unsigned timeout = 1000; // 1 second
-  Z3Adapter adapter(timeout);
+  Z3Adapter adapter(ctx, timeout);
 
   // 1 dimension array, int id[index]
   Z3RegionSymbol id(1, 32, 1);
-  Z3Symbol index(2, SymExpr::getArrayIndexTypeBitSize(), false);
+  Z3Symbol index(2, ctx.getArrayIndexTypeSizeInBits(), false);
   Z3ElemSymExpr a(&id, &index, false);
   z3::expr exa = adapter.genZ3Expr(&a);
   std::ostringstream oss;
@@ -179,8 +183,8 @@ void testZ3ElemSymExpr() {
 
   // 2 dimension array, int id2[index1][index2]
   Z3RegionSymbol id2(3, 32, 2);
-  Z3Symbol index1(4, SymExpr::getArrayIndexTypeBitSize(), true);
-  Z3Symbol index2(5, SymExpr::getArrayIndexTypeBitSize(), true);
+  Z3Symbol index1(4, ctx.getArrayIndexTypeSizeInBits(), true);
+  Z3Symbol index2(5, ctx.getArrayIndexTypeSizeInBits(), true);
   Z3ElemSymExpr b(&id2, &index1, true);
   Z3ElemSymExpr c(&b, &index2, true);
   z3::expr exb = adapter.genZ3Expr(&c);
@@ -192,7 +196,7 @@ void testZ3ElemSymExpr() {
 void testZ3ArithSymExpr() {
   llvm::errs() << "Test Z3BinSymbol ...\n";
   unsigned timeout = 1000; // 1 second
-  Z3Adapter adapter(timeout);
+  Z3Adapter adapter(ctx, timeout);
 
   // Unsigned int x1 
   Z3Symbol x1(1, 32, false);
@@ -218,7 +222,7 @@ void testZ3ArithSymExpr() {
 void testZ3UnarySymExpr() {
   llvm::errs() << "Test Z3UnarySymExpr . . .\n";
   unsigned timeout;
-  Z3Adapter adapter(timeout);
+  Z3Adapter adapter(ctx, timeout);
 
   Z3Symbol x1(1, 32, false);
   Z3Symbol x2(2, 32, false);
@@ -238,7 +242,7 @@ void testZ3UnarySymExpr() {
 void testZ3IntCastSymExpr() {
   llvm::errs() << "Test Z3IntCastSymExpr. . .\n";
   unsigned timeout;
-  Z3Adapter adapter(timeout);
+  Z3Adapter adapter(ctx, timeout);
 
   Z3Symbol x1(1, 32, false);
   Z3TruncSymExpr cse1(16, &x1);
@@ -281,7 +285,7 @@ void testZ3IntCastSymExpr() {
 void testZ3Adapter() {
   llvm::errs() << "Test Z3Adapter. . .\n";
   unsigned timeout = 1000; // 1 second
-  SolverAdapter *adapter = CreateZ3SolverAdapter();
+  SolverAdapter *adapter = CreateZ3SolverAdapter(ctx);
 
   // x1 * 5 < x2 + 6
   llvm::errs() << "// x1 * 5 < x2 + 6\n";
@@ -335,8 +339,8 @@ void testZ3Adapter() {
   // !(id[index1][index2] > x3)
   llvm::errs() << "// !(id[index1][index2] > x3)\n";
   Z3RegionSymbol id(7, 32, 2);
-  Z3Symbol index1(8, SymExpr::getArrayIndexTypeBitSize(), true);
-  Z3Symbol index2(9, SymExpr::getArrayIndexTypeBitSize(), true);
+  Z3Symbol index1(8, ctx.getArrayIndexTypeSizeInBits(), true);
+  Z3Symbol index2(9, ctx.getArrayIndexTypeSizeInBits(), true);
   Z3ElemSymExpr ese1(&id, &index1, true);
   Z3ElemSymExpr ese2(&ese1, &index2, true);
   Z3LogicalSymExpr bin8(&ese2, &x3, BO_UGE);

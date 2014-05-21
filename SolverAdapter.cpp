@@ -2,7 +2,7 @@
 #include "Z3Adapter.h"
 
 namespace smt {
-SolverAdapter *CreateZ3SolverAdapter() {
-  return new Z3Adapter();
+SolverAdapter *CreateZ3SolverAdapter(SolverContext &ctx) {
+  return new Z3Adapter(ctx);
 }
 }
